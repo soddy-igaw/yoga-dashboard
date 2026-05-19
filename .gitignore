@@ -1,0 +1,6 @@
+venv/
+app.py
+templates/
+requirements.txt
+__pycache__/
+data.json
