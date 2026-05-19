@@ -7,248 +7,178 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f8f9fa; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        h1 { font-size: 1.5rem; margin-bottom: 24px; color: #1a1a1a; }
-        h2 { font-size: 1.1rem; margin-bottom: 12px; color: #555; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
-        .kpi-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .kpi-card .label { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
-        .kpi-card .value { font-size: 1.5rem; font-weight: 700; }
-        .positive { color: #16a34a; }
-        .negative { color: #dc2626; }
-        .neutral { color: #2563eb; }
-        .section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .chart-container { position: relative; height: 280px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-        th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; color: #555; }
-        td:first-child, th:first-child { text-align: left; }
-        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-        .config-item { display: flex; flex-direction: column; }
-        .config-item label { font-size: 0.75rem; color: #666; margin-bottom: 3px; }
-        .config-item input { padding: 7px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 500; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-danger { background: #dc2626; color: white; font-size: 0.75rem; padding: 4px 8px; }
-        .btn-secondary { background: #6b7280; color: white; }
-        .btn:hover { opacity: 0.85; }
-        .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; margin-top: 14px; }
-        .input-row .config-item { min-width: 90px; flex: 1; }
-        .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-        .tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; background: #e5e7eb; font-size: 0.82rem; }
-        .tab.active { background: #2563eb; color: white; }
+        body { font-family: -apple-system, sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { font-size: 1.4rem; margin-bottom: 20px; }
+        h2 { font-size: 1rem; margin-bottom: 10px; color: #555; }
+        .section { background: white; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .kpi { background: white; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .kpi .label { font-size: 0.7rem; color: #888; }
+        .kpi .val { font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
+        .pos { color: #16a34a; } .neg { color: #dc2626; } .blue { color: #2563eb; }
+        .slider-group { margin-bottom: 14px; }
+        .slider-group label { font-size: 0.8rem; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .slider-group input[type=range] { width: 100%; accent-color: #2563eb; }
+        .chart-box { height: 250px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 10px; }
+        th, td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #eee; }
+        th { color: #888; font-weight: 500; } td:first-child, th:first-child { text-align: left; }
+        .note { font-size: 0.75rem; color: #999; margin-top: 8px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🧘 홍제동 요가원 경영 대시보드</h1>
-    <div class="kpi-grid" id="kpiGrid"></div>
+    <h1>🧘 홍제동 요가원 시뮬레이터</h1>
+
+    <div class="kpi-grid" id="kpis"></div>
 
     <div class="section">
-        <h2>📈 12개월 시뮬레이션</h2>
-        <div class="tabs">
-            <div class="tab active" onclick="setNewRate(3)">신규 3명/월</div>
-            <div class="tab" onclick="setNewRate(5)">신규 5명/월</div>
-            <div class="tab" onclick="setNewRate(7)">신규 7명/월</div>
-        </div>
-        <div class="chart-container"><canvas id="simChart"></canvas></div>
+        <h2>⚙️ 조건 설정</h2>
+        <div class="slider-group"><label>하루 클래스 수 <span id="v_classes"></span></label><input type="range" id="s_classes" min="2" max="5" step="1" value="3"></div>
+        <div class="slider-group"><label>강사 시급 (만원) <span id="v_wage"></span></label><input type="range" id="s_wage" min="3.5" max="4.5" step="0.1" value="3.75"></div>
+        <div class="slider-group"><label>월 신규 회원 <span id="v_new"></span></label><input type="range" id="s_new" min="2" max="12" step="1" value="5"></div>
+        <div class="slider-group"><label>월세 (만원) <span id="v_rent"></span></label><input type="range" id="s_rent" min="160" max="210" step="5" value="180"></div>
+        <div class="slider-group"><label>초기 회원 수 <span id="v_members"></span></label><input type="range" id="s_members" min="15" max="40" step="1" value="37"></div>
+        <div class="slider-group"><label>월 이탈률 (%) <span id="v_churn"></span></label><input type="range" id="s_churn" min="5" max="20" step="1" value="12"></div>
+        <div class="slider-group"><label>권리금 (만원) <span id="v_key"></span></label><input type="range" id="s_key" min="500" max="2000" step="100" value="1000"></div>
     </div>
 
     <div class="section">
-        <h2>📊 시뮬레이션 상세</h2>
-        <div style="overflow-x:auto;"><table id="simTable"></table></div>
+        <h2>📈 12개월 손익 추이</h2>
+        <div class="chart-box"><canvas id="chart"></canvas></div>
     </div>
 
     <div class="section">
-        <h2>📝 실적 입력 (매월 기록)</h2>
-        <div class="input-row">
-            <div class="config-item"><label>신규</label><input type="number" id="inp_new" value="5"></div>
-            <div class="config-item"><label>이탈</label><input type="number" id="inp_churn" value="3"></div>
-            <div class="config-item"><label>추가매출(만)</label><input type="number" id="inp_extra_rev" value="0"></div>
-            <div class="config-item"><label>추가비용(만)</label><input type="number" id="inp_extra_cost" value="0"></div>
-            <div class="config-item"><label>메모</label><input type="text" id="inp_note" placeholder="워크숍 등"></div>
-            <button class="btn btn-primary" onclick="addMonth()">추가</button>
-        </div>
-        <div style="overflow-x:auto; margin-top:14px;"><table id="actualTable"></table></div>
+        <h2>📊 월별 상세</h2>
+        <div style="overflow-x:auto;"><table id="tbl"></table></div>
     </div>
 
     <div class="section">
-        <h2>⚙️ 설정</h2>
-        <div class="config-grid" id="configGrid"></div>
-        <div style="margin-top:14px; display:flex; gap:8px;">
-            <button class="btn btn-primary" onclick="saveConfig()">설정 저장</button>
-            <button class="btn btn-secondary" onclick="resetAll()">전체 초기화</button>
-        </div>
+        <h2>💡 수업 구조</h2>
+        <div id="classInfo"></div>
+        <p class="note">오전 1타임 + 오후 2타임 기본 / 슬라이더로 조절 시 오후 타임 추가</p>
     </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'yoga_dashboard';
-const DEFAULT_CONFIG = {
-    rent: 180, instructor_cost: 240, utilities: 25, supplies: 10, marketing: 10,
-    price_3m_3x: 52, initial_members: 37, key_money: 1000, deposit: 500, interior: 200
-};
-const CONFIG_LABELS = {
-    rent: '월세(만)', instructor_cost: '강사비(만)', utilities: '관리비(만)',
-    supplies: '소모품(만)', marketing: '마케팅(만)', price_3m_3x: '3개월 주3회(만)',
-    initial_members: '초기 회원수', key_money: '권리금(만)', deposit: '보증금(만)', interior: '인테리어(만)'
-};
+let chart;
+const $ = id => document.getElementById(id);
 
-let state = loadState();
-let monthlyNew = 5;
-let chart = null;
+const SLIDERS = ['classes','wage','new','rent','members','churn','key'];
+SLIDERS.forEach(s => {
+    $('s_'+s).addEventListener('input', render);
+});
 
-function loadState() {
-    const s = localStorage.getItem(STORAGE_KEY);
-    return s ? JSON.parse(s) : { config: {...DEFAULT_CONFIG}, months: [] };
+function getInputs() {
+    return {
+        classesPerDay: +$('s_classes').value,
+        wage: +$('s_wage').value,
+        monthlyNew: +$('s_new').value,
+        rent: +$('s_rent').value,
+        initialMembers: +$('s_members').value,
+        churnRate: +$('s_churn').value / 100,
+        keyMoney: +$('s_key').value,
+        deposit: 500,
+        interior: 200,
+        pricePerMonth: 52 / 3, // 3개월 52만 → 월 17.3만
+        daysPerWeek: 6,
+    };
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
-function getFixed(members) {
-    const c = state.config;
-    const extra = members >= 40 ? 30 : (members >= 35 ? 15 : 0);
-    return c.rent + c.instructor_cost + extra + c.utilities + c.supplies + c.marketing;
+function calcCost(p, members) {
+    // 강사비: 클래스수 × 주6일 × 4주 × (시급 × 1.5시간)
+    const classesPerMonth = p.classesPerDay * p.daysPerWeek * 4;
+    const instructorCost = classesPerMonth * p.wage * 1.5;
+    // 주말 본인 2클래스 절감 (토일 × 4주 = 8클래스)
+    const selfClasses = 8;
+    const actualInstructor = (classesPerMonth - selfClasses) * p.wage * 1.5;
+    const utilities = 25;
+    const supplies = 10;
+    const marketing = 10;
+    return { 
+        instructor: Math.round(actualInstructor), 
+        fixed: Math.round(p.rent + actualInstructor + utilities + supplies + marketing),
+        classesPerMonth,
+        selfClasses
+    };
 }
-function getAvgRevenue() { return state.config.price_3m_3x / 3; }
-function getInitialInvestment() { const c = state.config; return c.key_money + c.deposit + c.interior; }
-function getBEP() { return getFixed(30) / getAvgRevenue(); }
 
-function simulate() {
+function simulate(p) {
     const results = [];
-    let total = state.config.initial_members;
-    let cumul = -getInitialInvestment();
-    const churnRate = 0.12;
+    let total = p.initialMembers;
+    const init = p.keyMoney + p.deposit + p.interior;
+    let cumul = -init;
+
     for (let m = 1; m <= 12; m++) {
-        const churned = Math.round(total * churnRate);
-        total = total - churned + monthlyNew;
-        const rev = total * getAvgRevenue();
-        const cost = getFixed(total);
-        const profit = rev - cost;
+        const churned = Math.round(total * p.churnRate);
+        total = Math.max(0, total - churned + p.monthlyNew);
+        const revenue = Math.round(total * p.pricePerMonth);
+        const { fixed } = calcCost(p, total);
+        const profit = revenue - fixed;
         cumul += profit;
-        results.push({ month: m, total, new: monthlyNew, churned, revenue: Math.round(rev), cost, profit: Math.round(profit), cumulative: Math.round(cumul) });
+        results.push({ month: m, total, churned, revenue, fixed, profit: Math.round(profit), cumul: Math.round(cumul) });
     }
-    return results;
-}
-
-function calcActual() {
-    const results = [];
-    let total = state.config.initial_members;
-    let cumul = -getInitialInvestment();
-    for (const m of state.months) {
-        total = total + m.new_members - m.churned_members;
-        if (total < 0) total = 0;
-        const rev = total * getAvgRevenue() + (m.extra_revenue || 0);
-        const cost = getFixed(total) + (m.extra_cost || 0);
-        const profit = rev - cost;
-        cumul += profit;
-        results.push({ month: m.month, total, new_members: m.new_members, churned_members: m.churned_members, revenue: Math.round(rev), cost: Math.round(cost), profit: Math.round(profit), cumulative: Math.round(cumul), note: m.note || '' });
-    }
-    return results;
+    return { results, init };
 }
 
 function render() {
-    const sim = simulate();
-    const actual = calcActual();
-    const bep = getBEP();
-    const fixed = getFixed(30);
-    const init = getInitialInvestment();
+    const p = getInputs();
+    // Update labels
+    $('v_classes').textContent = p.classesPerDay + '타임 (오전1+오후'+(p.classesPerDay-1)+')';
+    $('v_wage').textContent = p.wage.toFixed(1) + '만';
+    $('v_new').textContent = p.monthlyNew + '명';
+    $('v_rent').textContent = p.rent + '만';
+    $('v_members').textContent = p.initialMembers + '명';
+    $('v_churn').textContent = (p.churnRate*100).toFixed(0) + '%';
+    $('v_key').textContent = p.keyMoney + '만';
 
-    // KPI
-    let kpiHtml = `
-        <div class="kpi-card"><div class="label">BEP 회원수</div><div class="value neutral">${bep.toFixed(0)}명</div></div>
-        <div class="kpi-card"><div class="label">월 고정비</div><div class="value">${fixed}만</div></div>
-        <div class="kpi-card"><div class="label">초기 투자</div><div class="value negative">-${init}만</div></div>
-        <div class="kpi-card"><div class="label">초기 회원</div><div class="value neutral">${state.config.initial_members}명</div></div>`;
-    if (actual.length) {
-        const last = actual[actual.length - 1];
-        kpiHtml += `<div class="kpi-card"><div class="label">최근 순이익</div><div class="value ${last.profit>=0?'positive':'negative'}">${last.profit>=0?'+':''}${last.profit}만</div></div>`;
-        kpiHtml += `<div class="kpi-card"><div class="label">누적 손익</div><div class="value ${last.cumulative>=0?'positive':'negative'}">${last.cumulative>=0?'+':''}${last.cumulative}만</div></div>`;
-    }
-    document.getElementById('kpiGrid').innerHTML = kpiHtml;
+    const { results, init } = simulate(p);
+    const { fixed, instructor, classesPerMonth, selfClasses } = calcCost(p, p.initialMembers);
+    const bep = Math.ceil(fixed / p.pricePerMonth);
+    const last = results[results.length - 1];
+    const recoveryMonth = results.find(r => r.cumul >= 0);
 
-    // Sim table
-    let tHtml = '<thead><tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th></tr></thead><tbody>';
-    for (const r of sim) {
-        tHtml += `<tr><td>${r.month}월</td><td>${r.total}명</td><td>+${r.new}</td><td>-${r.churned}</td><td>${r.revenue}만</td><td>${r.cost}만</td><td class="${r.profit>=0?'positive':'negative'}">${r.profit>=0?'+':''}${r.profit}만</td><td class="${r.cumulative>=0?'positive':'negative'}">${r.cumulative>=0?'+':''}${r.cumulative}만</td></tr>`;
-    }
-    tHtml += '</tbody>';
-    document.getElementById('simTable').innerHTML = tHtml;
+    // KPIs
+    $('kpis').innerHTML = `
+        <div class="kpi"><div class="label">BEP 회원수</div><div class="val blue">${bep}명</div></div>
+        <div class="kpi"><div class="label">월 고정비</div><div class="val">${fixed}만</div></div>
+        <div class="kpi"><div class="label">강사비/월</div><div class="val">${instructor}만</div></div>
+        <div class="kpi"><div class="label">초기 투자</div><div class="val neg">-${init}만</div></div>
+        <div class="kpi"><div class="label">12개월 후 회원</div><div class="val blue">${last.total}명</div></div>
+        <div class="kpi"><div class="label">12개월 누적</div><div class="val ${last.cumul>=0?'pos':'neg'}">${last.cumul>=0?'+':''}${last.cumul}만</div></div>
+        <div class="kpi"><div class="label">투자회수</div><div class="val ${recoveryMonth?'pos':'neg'}">${recoveryMonth?recoveryMonth.month+'개월':'12개월+' }</div></div>
+        <div class="kpi"><div class="label">월 클래스</div><div class="val">${classesPerMonth}회</div></div>
+    `;
 
-    // Actual table
-    let aHtml = '';
-    if (actual.length) {
-        aHtml = '<thead><tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th><th>메모</th><th></th></tr></thead><tbody>';
-        actual.forEach((r, i) => {
-            aHtml += `<tr><td>${r.month}월</td><td>${r.total}명</td><td>+${r.new_members}</td><td>-${r.churned_members}</td><td>${r.revenue}만</td><td>${r.cost}만</td><td class="${r.profit>=0?'positive':'negative'}">${r.profit>=0?'+':''}${r.profit}만</td><td class="${r.cumulative>=0?'positive':'negative'}">${r.cumulative>=0?'+':''}${r.cumulative}만</td><td>${r.note}</td><td><button class="btn btn-danger" onclick="deleteMonth(${i})">×</button></td></tr>`;
-        });
-        aHtml += '</tbody>';
-    }
-    document.getElementById('actualTable').innerHTML = aHtml;
+    // Class info
+    $('classInfo').innerHTML = `<p style="font-size:0.85rem;">총 ${classesPerMonth}클래스/월 중 본인 ${selfClasses}클래스 (주말) → 강사 담당 ${classesPerMonth-selfClasses}클래스</p>`;
+
+    // Table
+    let html = '<thead><tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th></tr></thead><tbody>';
+    results.forEach(r => {
+        html += `<tr><td>${r.month}월</td><td>${r.total}명</td><td>+${p.monthlyNew}</td><td>-${r.churned}</td><td>${r.revenue}만</td><td>${r.fixed}만</td><td class="${r.profit>=0?'pos':'neg'}">${r.profit>=0?'+':''}${r.profit}만</td><td class="${r.cumul>=0?'pos':'neg'}">${r.cumul>=0?'+':''}${r.cumul}만</td></tr>`;
+    });
+    html += '</tbody>';
+    $('tbl').innerHTML = html;
 
     // Chart
     if (chart) chart.destroy();
-    chart = new Chart(document.getElementById('simChart'), {
+    chart = new Chart($('chart'), {
         type: 'bar',
         data: {
-            labels: sim.map(d => d.month + '월'),
+            labels: results.map(r => r.month+'월'),
             datasets: [
-                { label: '월 순이익(만)', data: sim.map(d => d.profit), backgroundColor: sim.map(d => d.profit >= 0 ? '#86efac' : '#fca5a5'), borderRadius: 4 },
-                { label: '누적(만)', data: sim.map(d => d.cumulative), type: 'line', borderColor: '#2563eb', borderWidth: 2, pointRadius: 3, fill: false, yAxisID: 'y1' }
+                { label: '순이익', data: results.map(r => r.profit), backgroundColor: results.map(r => r.profit>=0?'#86efac':'#fca5a5'), borderRadius: 3 },
+                { label: '누적', data: results.map(r => r.cumul), type: 'line', borderColor: '#2563eb', borderWidth: 2, pointRadius: 3, fill: false, yAxisID: 'y1' }
             ]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
             scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } }
         }
     });
-
-    // Config
-    let cHtml = '';
-    for (const [k, v] of Object.entries(state.config)) {
-        cHtml += `<div class="config-item"><label>${CONFIG_LABELS[k]||k}</label><input type="number" id="cfg_${k}" value="${v}"></div>`;
-    }
-    document.getElementById('configGrid').innerHTML = cHtml;
-
-    // Tabs
-    document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', parseInt(t.textContent) === monthlyNew);
-    });
-}
-
-function setNewRate(n) { monthlyNew = n; render(); }
-
-function addMonth() {
-    state.months.push({
-        month: state.months.length + 1,
-        new_members: parseInt(document.getElementById('inp_new').value) || 0,
-        churned_members: parseInt(document.getElementById('inp_churn').value) || 0,
-        extra_revenue: parseFloat(document.getElementById('inp_extra_rev').value) || 0,
-        extra_cost: parseFloat(document.getElementById('inp_extra_cost').value) || 0,
-        note: document.getElementById('inp_note').value
-    });
-    saveState(); render();
-}
-
-function deleteMonth(i) {
-    state.months.splice(i, 1);
-    state.months.forEach((m, idx) => m.month = idx + 1);
-    saveState(); render();
-}
-
-function saveConfig() {
-    for (const k of Object.keys(state.config)) {
-        const el = document.getElementById('cfg_' + k);
-        if (el) state.config[k] = parseFloat(el.value) || 0;
-    }
-    saveState(); render();
-}
-
-function resetAll() {
-    if (confirm('모든 데이터를 초기화할까요?')) {
-        state = { config: {...DEFAULT_CONFIG}, months: [] };
-        saveState(); render();
-    }
 }
 
 render();
