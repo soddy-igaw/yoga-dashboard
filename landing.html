@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홍제 요가원</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif KR', serif; background: #f9f6f2; color: #4a3f37; }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 60px 24px;
+            background: linear-gradient(180deg, #f9f6f2 0%, #f0ebe4 100%);
+        }
+        .hero h1 { font-weight: 200; font-size: 2.4rem; letter-spacing: -1px; margin-bottom: 16px; color: #5c4f47; }
+        .hero p { font-weight: 300; font-size: 0.95rem; color: #8b7e75; line-height: 1.8; max-width: 400px; }
+        .hero .sub { margin-top: 32px; font-size: 0.75rem; color: #b5a99f; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Sections */
+        section { padding: 80px 24px; max-width: 680px; margin: 0 auto; }
+        section h2 { font-weight: 300; font-size: 1.4rem; margin-bottom: 24px; color: #5c4f47; }
+        section p { font-weight: 300; font-size: 0.88rem; line-height: 2; color: #6b5f56; }
+
+        /* Schedule */
+        .schedule { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+        .schedule-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #ede8e3; }
+        .schedule-card .time { font-size: 0.7rem; color: #b5a99f; letter-spacing: 1px; margin-bottom: 6px; }
+        .schedule-card .name { font-size: 0.95rem; color: #5c4f47; }
+        .schedule-card .desc { font-size: 0.75rem; color: #9b8e85; margin-top: 4px; }
+
+        /* Pricing */
+        .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 24px; }
+        .price-card { background: #fff; border-radius: 12px; padding: 24px; text-align: center; border: 1px solid #ede8e3; }
+        .price-card .period { font-size: 0.7rem; color: #b5a99f; letter-spacing: 1px; }
+        .price-card .amount { font-size: 1.6rem; font-weight: 400; color: #5c4f47; margin: 8px 0; }
+        .price-card .detail { font-size: 0.72rem; color: #9b8e85; }
+        .price-card.featured { background: #5c4f47; color: #f0ebe4; border-color: #5c4f47; }
+        .price-card.featured .period { color: #c4b8ad; }
+        .price-card.featured .amount { color: #f0ebe4; }
+        .price-card.featured .detail { color: #c4b8ad; }
+
+        /* Info */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+        .info-grid dt { font-size: 0.7rem; color: #b5a99f; letter-spacing: 1px; margin-bottom: 4px; }
+        .info-grid dd { font-size: 0.88rem; color: #5c4f47; margin-bottom: 16px; }
+
+        /* CTA */
+        .cta { text-align: center; padding: 60px 24px; }
+        .cta a {
+            display: inline-block; padding: 14px 36px; background: #5c4f47; color: #f0ebe4;
+            text-decoration: none; border-radius: 30px; font-size: 0.85rem; letter-spacing: 0.5px;
+        }
+        .cta a:hover { background: #4a3f37; }
+
+        /* Footer */
+        footer { text-align: center; padding: 40px 24px; font-size: 0.7rem; color: #b5a99f; }
+
+        @media (max-width: 500px) {
+            .hero h1 { font-size: 1.8rem; }
+            .schedule, .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="sub">hongje yoga studio</div>
+    <h1>고요한 흐름,<br>나를 만나는 시간</h1>
+    <p>홍제동 작은 요가원에서<br>호흡과 움직임으로 하루를 시작합니다</p>
+</div>
+
+<section>
+    <h2>수업 안내</h2>
+    <p>소규모 정원제로 운영합니다. 한 클래스 최대 8명, 선생님의 세심한 교정과 함께 나만의 속도로 수련할 수 있습니다.</p>
+    <div class="schedule">
+        <div class="schedule-card">
+            <div class="time">AM 07:00 – 08:00</div>
+            <div class="name">새벽 빈야사</div>
+            <div class="desc">호흡과 함께 깨어나는 아침 흐름</div>
+        </div>
+        <div class="schedule-card">
+            <div class="time">AM 10:00 – 11:00</div>
+            <div class="name">오전 하타</div>
+            <div class="desc">기초 정렬과 부드러운 스트레칭</div>
+        </div>
+        <div class="schedule-card">
+            <div class="time">PM 18:30 – 19:30</div>
+            <div class="name">저녁 플로우</div>
+            <div class="desc">하루의 긴장을 풀어내는 시간</div>
+        </div>
+        <div class="schedule-card">
+            <div class="time">PM 20:00 – 21:00</div>
+            <div class="name">달빛 음요가</div>
+            <div class="desc">깊은 이완과 명상</div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>가격</h2>
+    <div class="pricing">
+        <div class="price-card">
+            <div class="period">1개월 · 주 3회</div>
+            <div class="amount">20만원</div>
+            <div class="detail">체험 후 시작하기 좋은</div>
+        </div>
+        <div class="price-card featured">
+            <div class="period">3개월 · 주 3회</div>
+            <div class="amount">52만원</div>
+            <div class="detail">가장 많이 선택하는</div>
+        </div>
+        <div class="price-card">
+            <div class="period">3개월 · 주 2회</div>
+            <div class="amount">42만원</div>
+            <div class="detail">여유롭게 수련하는</div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>오시는 길</h2>
+    <dl class="info-grid">
+        <div>
+            <dt>주소</dt>
+            <dd>서울 서대문구 홍제동<br>무악빌딩</dd>
+        </div>
+        <div>
+            <dt>교통</dt>
+            <dd>3호선 무악재역 도보 5분<br>홍제역 도보 8분</dd>
+        </div>
+        <div>
+            <dt>운영시간</dt>
+            <dd>월–토 07:00 – 21:00<br>일요일 휴무</dd>
+        </div>
+        <div>
+            <dt>문의</dt>
+            <dd>카카오톡 채널<br>@홍제요가원</dd>
+        </div>
+    </dl>
+</section>
+
+<div class="cta">
+    <a href="#">체험 수업 신청하기</a>
+</div>
+
+<footer>
+    <p>© 2026 홍제 요가원</p>
+</footer>
+
+</body>
+</html>

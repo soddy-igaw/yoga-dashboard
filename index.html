@@ -3,184 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>홍제동 요가원 경영 대시보드</title>
+    <title>요가원 경영 시뮬레이터</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500&family=Pretendard:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { font-size: 1.4rem; margin-bottom: 20px; }
-        h2 { font-size: 1rem; margin-bottom: 10px; color: #555; }
-        .section { background: white; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .kpi { background: white; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-        .kpi .label { font-size: 0.7rem; color: #888; }
-        .kpi .val { font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
-        .pos { color: #16a34a; } .neg { color: #dc2626; } .blue { color: #2563eb; }
-        .slider-group { margin-bottom: 14px; }
-        .slider-group label { font-size: 0.8rem; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .slider-group input[type=range] { width: 100%; accent-color: #2563eb; }
-        .chart-box { height: 250px; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 10px; }
-        th, td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #eee; }
-        th { color: #888; font-weight: 500; } td:first-child, th:first-child { text-align: left; }
-        .note { font-size: 0.75rem; color: #999; margin-top: 8px; }
+        body { font-family: 'Pretendard', sans-serif; background: #faf8f5; color: #3d3530; padding: 24px 16px; }
+        .container { max-width: 860px; margin: 0 auto; }
+        h1 { font-family: 'Noto Serif KR', serif; font-weight: 300; font-size: 1.3rem; letter-spacing: -0.5px; margin-bottom: 28px; color: #5c4f47; }
+        h2 { font-size: 0.82rem; font-weight: 400; color: #9b8e85; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
+        .section { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 18px; border: 1px solid #ede8e3; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .kpi { background: #fdfcfa; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #ede8e3; }
+        .kpi .label { font-size: 0.68rem; color: #a89e96; letter-spacing: 0.5px; }
+        .kpi .val { font-family: 'Noto Serif KR', serif; font-size: 1.4rem; font-weight: 500; margin-top: 4px; color: #5c4f47; }
+        .pos { color: #6b8f71; } .neg { color: #c4736e; } .accent { color: #8b7355; }
+        .slider-group { margin-bottom: 16px; }
+        .slider-group label { font-size: 0.75rem; color: #7a6f67; display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .slider-group label span { font-weight: 600; color: #5c4f47; }
+        input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: #ede8e3; border-radius: 2px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #8b7355; cursor: pointer; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .chart-box { height: 220px; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid #f0ebe6; }
+        th { color: #a89e96; font-weight: 400; font-size: 0.7rem; } td:first-child, th:first-child { text-align: left; }
+        .divider { height: 1px; background: #ede8e3; margin: 20px 0; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🧘 홍제동 요가원 시뮬레이터</h1>
-
+    <h1>홍제동 요가원 · 경영 시뮬레이터</h1>
     <div class="kpi-grid" id="kpis"></div>
 
     <div class="section">
-        <h2>⚙️ 조건 설정</h2>
-        <div class="slider-group"><label>하루 클래스 수 <span id="v_classes"></span></label><input type="range" id="s_classes" min="2" max="5" step="1" value="3"></div>
-        <div class="slider-group"><label>강사 시급 (만원) <span id="v_wage"></span></label><input type="range" id="s_wage" min="3.5" max="4.5" step="0.1" value="3.75"></div>
+        <h2>조건 설정</h2>
+        <div class="slider-group"><label>하루 클래스 <span id="v_classes"></span></label><input type="range" id="s_classes" min="2" max="5" step="1" value="3"></div>
+        <div class="slider-group"><label>강사 시급 <span id="v_wage"></span></label><input type="range" id="s_wage" min="3.5" max="4.5" step="0.1" value="3.75"></div>
         <div class="slider-group"><label>월 신규 회원 <span id="v_new"></span></label><input type="range" id="s_new" min="2" max="12" step="1" value="5"></div>
-        <div class="slider-group"><label>월세 (만원) <span id="v_rent"></span></label><input type="range" id="s_rent" min="160" max="210" step="5" value="180"></div>
-        <div class="slider-group"><label>초기 회원 수 <span id="v_members"></span></label><input type="range" id="s_members" min="15" max="40" step="1" value="37"></div>
-        <div class="slider-group"><label>월 이탈률 (%) <span id="v_churn"></span></label><input type="range" id="s_churn" min="5" max="20" step="1" value="12"></div>
-        <div class="slider-group"><label>권리금 (만원) <span id="v_key"></span></label><input type="range" id="s_key" min="500" max="2000" step="100" value="1000"></div>
+        <div class="slider-group"><label>월세 <span id="v_rent"></span></label><input type="range" id="s_rent" min="160" max="210" step="5" value="180"></div>
+        <div class="slider-group"><label>초기 회원 <span id="v_members"></span></label><input type="range" id="s_members" min="15" max="40" step="1" value="37"></div>
+        <div class="slider-group"><label>월 이탈률 <span id="v_churn"></span></label><input type="range" id="s_churn" min="5" max="20" step="1" value="12"></div>
+        <div class="slider-group"><label>권리금 <span id="v_key"></span></label><input type="range" id="s_key" min="500" max="2000" step="100" value="1000"></div>
     </div>
 
     <div class="section">
-        <h2>📈 12개월 손익 추이</h2>
+        <h2>12개월 추이</h2>
         <div class="chart-box"><canvas id="chart"></canvas></div>
     </div>
 
     <div class="section">
-        <h2>📊 월별 상세</h2>
+        <h2>월별 상세</h2>
         <div style="overflow-x:auto;"><table id="tbl"></table></div>
-    </div>
-
-    <div class="section">
-        <h2>💡 수업 구조</h2>
-        <div id="classInfo"></div>
-        <p class="note">오전 1타임 + 오후 2타임 기본 / 슬라이더로 조절 시 오후 타임 추가</p>
     </div>
 </div>
 
 <script>
 let chart;
-const $ = id => document.getElementById(id);
+const $=id=>document.getElementById(id);
+const SLIDERS=['classes','wage','new','rent','members','churn','key'];
+SLIDERS.forEach(s=>$('s_'+s).addEventListener('input',render));
 
-const SLIDERS = ['classes','wage','new','rent','members','churn','key'];
-SLIDERS.forEach(s => {
-    $('s_'+s).addEventListener('input', render);
-});
+function getInputs(){return{classesPerDay:+$('s_classes').value,wage:+$('s_wage').value,monthlyNew:+$('s_new').value,rent:+$('s_rent').value,initialMembers:+$('s_members').value,churnRate:+$('s_churn').value/100,keyMoney:+$('s_key').value,deposit:500,interior:200,pricePerMonth:52/3,daysPerWeek:6}}
 
-function getInputs() {
-    return {
-        classesPerDay: +$('s_classes').value,
-        wage: +$('s_wage').value,
-        monthlyNew: +$('s_new').value,
-        rent: +$('s_rent').value,
-        initialMembers: +$('s_members').value,
-        churnRate: +$('s_churn').value / 100,
-        keyMoney: +$('s_key').value,
-        deposit: 500,
-        interior: 200,
-        pricePerMonth: 52 / 3, // 3개월 52만 → 월 17.3만
-        daysPerWeek: 6,
-    };
+function calcCost(p){
+    const total=p.classesPerDay*p.daysPerWeek*4;
+    const self=8;
+    const inst=(total-self)*p.wage*1.5;
+    return{instructor:Math.round(inst),fixed:Math.round(p.rent+inst+25+10+10),total,self};
 }
 
-function calcCost(p, members) {
-    // 강사비: 클래스수 × 주6일 × 4주 × (시급 × 1.5시간)
-    const classesPerMonth = p.classesPerDay * p.daysPerWeek * 4;
-    const instructorCost = classesPerMonth * p.wage * 1.5;
-    // 주말 본인 2클래스 절감 (토일 × 4주 = 8클래스)
-    const selfClasses = 8;
-    const actualInstructor = (classesPerMonth - selfClasses) * p.wage * 1.5;
-    const utilities = 25;
-    const supplies = 10;
-    const marketing = 10;
-    return { 
-        instructor: Math.round(actualInstructor), 
-        fixed: Math.round(p.rent + actualInstructor + utilities + supplies + marketing),
-        classesPerMonth,
-        selfClasses
-    };
+function simulate(p){
+    const r=[];let t=p.initialMembers,init=p.keyMoney+p.deposit+p.interior,c=-init;
+    for(let m=1;m<=12;m++){
+        const ch=Math.round(t*p.churnRate);t=Math.max(0,t-ch+p.monthlyNew);
+        const rev=Math.round(t*p.pricePerMonth),{fixed}=calcCost(p),pr=rev-fixed;c+=pr;
+        r.push({month:m,total:t,churned:ch,revenue:rev,fixed,profit:Math.round(pr),cumul:Math.round(c)});
+    }return{results:r,init};
 }
 
-function simulate(p) {
-    const results = [];
-    let total = p.initialMembers;
-    const init = p.keyMoney + p.deposit + p.interior;
-    let cumul = -init;
+function render(){
+    const p=getInputs();
+    $('v_classes').textContent=p.classesPerDay+'타임';
+    $('v_wage').textContent=p.wage.toFixed(1)+'만원';
+    $('v_new').textContent=p.monthlyNew+'명';
+    $('v_rent').textContent=p.rent+'만원';
+    $('v_members').textContent=p.initialMembers+'명';
+    $('v_churn').textContent=(p.churnRate*100).toFixed(0)+'%';
+    $('v_key').textContent=p.keyMoney+'만원';
 
-    for (let m = 1; m <= 12; m++) {
-        const churned = Math.round(total * p.churnRate);
-        total = Math.max(0, total - churned + p.monthlyNew);
-        const revenue = Math.round(total * p.pricePerMonth);
-        const { fixed } = calcCost(p, total);
-        const profit = revenue - fixed;
-        cumul += profit;
-        results.push({ month: m, total, churned, revenue, fixed, profit: Math.round(profit), cumul: Math.round(cumul) });
-    }
-    return { results, init };
-}
+    const{results,init}=simulate(p),{fixed,instructor}=calcCost(p);
+    const bep=Math.ceil(fixed/p.pricePerMonth),last=results[11],rec=results.find(r=>r.cumul>=0);
 
-function render() {
-    const p = getInputs();
-    // Update labels
-    $('v_classes').textContent = p.classesPerDay + '타임 (오전1+오후'+(p.classesPerDay-1)+')';
-    $('v_wage').textContent = p.wage.toFixed(1) + '만';
-    $('v_new').textContent = p.monthlyNew + '명';
-    $('v_rent').textContent = p.rent + '만';
-    $('v_members').textContent = p.initialMembers + '명';
-    $('v_churn').textContent = (p.churnRate*100).toFixed(0) + '%';
-    $('v_key').textContent = p.keyMoney + '만';
-
-    const { results, init } = simulate(p);
-    const { fixed, instructor, classesPerMonth, selfClasses } = calcCost(p, p.initialMembers);
-    const bep = Math.ceil(fixed / p.pricePerMonth);
-    const last = results[results.length - 1];
-    const recoveryMonth = results.find(r => r.cumul >= 0);
-
-    // KPIs
-    $('kpis').innerHTML = `
-        <div class="kpi"><div class="label">BEP 회원수</div><div class="val blue">${bep}명</div></div>
+    $('kpis').innerHTML=`
+        <div class="kpi"><div class="label">BEP 회원</div><div class="val accent">${bep}명</div></div>
         <div class="kpi"><div class="label">월 고정비</div><div class="val">${fixed}만</div></div>
-        <div class="kpi"><div class="label">강사비/월</div><div class="val">${instructor}만</div></div>
-        <div class="kpi"><div class="label">초기 투자</div><div class="val neg">-${init}만</div></div>
-        <div class="kpi"><div class="label">12개월 후 회원</div><div class="val blue">${last.total}명</div></div>
-        <div class="kpi"><div class="label">12개월 누적</div><div class="val ${last.cumul>=0?'pos':'neg'}">${last.cumul>=0?'+':''}${last.cumul}만</div></div>
-        <div class="kpi"><div class="label">투자회수</div><div class="val ${recoveryMonth?'pos':'neg'}">${recoveryMonth?recoveryMonth.month+'개월':'12개월+' }</div></div>
-        <div class="kpi"><div class="label">월 클래스</div><div class="val">${classesPerMonth}회</div></div>
-    `;
+        <div class="kpi"><div class="label">강사비</div><div class="val">${instructor}만</div></div>
+        <div class="kpi"><div class="label">투자회수</div><div class="val ${rec?'pos':'neg'}">${rec?rec.month+'개월':'12개월+'}</div></div>
+        <div class="kpi"><div class="label">12개월 후</div><div class="val ${last.cumul>=0?'pos':'neg'}">${last.cumul>=0?'+':''}${last.cumul}만</div></div>
+        <div class="kpi"><div class="label">12개월 회원</div><div class="val accent">${last.total}명</div></div>`;
 
-    // Class info
-    $('classInfo').innerHTML = `<p style="font-size:0.85rem;">총 ${classesPerMonth}클래스/월 중 본인 ${selfClasses}클래스 (주말) → 강사 담당 ${classesPerMonth-selfClasses}클래스</p>`;
+    let html='<thead><tr><th>월</th><th>회원</th><th>+신규</th><th>-이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th></tr></thead><tbody>';
+    results.forEach(r=>{html+=`<tr><td>${r.month}</td><td>${r.total}</td><td>+${p.monthlyNew}</td><td>-${r.churned}</td><td>${r.revenue}</td><td>${r.fixed}</td><td class="${r.profit>=0?'pos':'neg'}">${r.profit>=0?'+':''}${r.profit}</td><td class="${r.cumul>=0?'pos':'neg'}">${r.cumul>=0?'+':''}${r.cumul}</td></tr>`;});
+    html+='</tbody>';$('tbl').innerHTML=html;
 
-    // Table
-    let html = '<thead><tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th></tr></thead><tbody>';
-    results.forEach(r => {
-        html += `<tr><td>${r.month}월</td><td>${r.total}명</td><td>+${p.monthlyNew}</td><td>-${r.churned}</td><td>${r.revenue}만</td><td>${r.fixed}만</td><td class="${r.profit>=0?'pos':'neg'}">${r.profit>=0?'+':''}${r.profit}만</td><td class="${r.cumul>=0?'pos':'neg'}">${r.cumul>=0?'+':''}${r.cumul}만</td></tr>`;
-    });
-    html += '</tbody>';
-    $('tbl').innerHTML = html;
-
-    // Chart
-    if (chart) chart.destroy();
-    chart = new Chart($('chart'), {
-        type: 'bar',
-        data: {
-            labels: results.map(r => r.month+'월'),
-            datasets: [
-                { label: '순이익', data: results.map(r => r.profit), backgroundColor: results.map(r => r.profit>=0?'#86efac':'#fca5a5'), borderRadius: 3 },
-                { label: '누적', data: results.map(r => r.cumul), type: 'line', borderColor: '#2563eb', borderWidth: 2, pointRadius: 3, fill: false, yAxisID: 'y1' }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
-            scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } }
-        }
-    });
+    if(chart)chart.destroy();
+    chart=new Chart($('chart'),{type:'bar',data:{labels:results.map(r=>r.month+'월'),datasets:[
+        {label:'순이익',data:results.map(r=>r.profit),backgroundColor:results.map(r=>r.profit>=0?'rgba(107,143,113,0.6)':'rgba(196,115,110,0.5)'),borderRadius:4},
+        {label:'누적',data:results.map(r=>r.cumul),type:'line',borderColor:'#8b7355',borderWidth:2,pointRadius:3,pointBackgroundColor:'#8b7355',fill:false,yAxisID:'y1'}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11,family:'Pretendard'},boxWidth:10}}},scales:{y:{position:'left',grid:{color:'#f0ebe6'}},y1:{position:'right',grid:{drawOnChartArea:false}}}}});
 }
-
 render();
 </script>
 </body>
