@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홍제동 요가원 경영 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f8f9fa; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 1.5rem; margin-bottom: 24px; color: #1a1a1a; }
+        h2 { font-size: 1.1rem; margin-bottom: 12px; color: #555; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .kpi-card .label { font-size: 0.8rem; color: #888; margin-bottom: 4px; }
+        .kpi-card .value { font-size: 1.6rem; font-weight: 700; }
+        .kpi-card .value.positive { color: #16a34a; }
+        .kpi-card .value.negative { color: #dc2626; }
+        .kpi-card .value.neutral { color: #2563eb; }
+
+        .section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .chart-container { position: relative; height: 300px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        td:first-child, th:first-child { text-align: left; }
+        .profit-pos { color: #16a34a; font-weight: 600; }
+        .profit-neg { color: #dc2626; font-weight: 600; }
+
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .config-item { display: flex; flex-direction: column; }
+        .config-item label { font-size: 0.8rem; color: #666; margin-bottom: 4px; }
+        .config-item input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
+
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn:hover { opacity: 0.9; }
+
+        .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; margin-top: 16px; }
+        .input-row .config-item { min-width: 100px; flex: 1; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab { padding: 8px 16px; border-radius: 6px; cursor: pointer; background: #e5e7eb; font-size: 0.85rem; }
+        .tab.active { background: #2563eb; color: white; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧘 홍제동 요가원 경영 대시보드</h1>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="label">손익분기 회원 수</div>
+            <div class="value neutral">{{ bep_members }}명</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">월 고정비</div>
+            <div class="value">{{ fixed_cost }}만</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">초기 투자금</div>
+            <div class="value negative">-{{ initial_investment }}만</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">현재 회원 (설정)</div>
+            <div class="value neutral">{{ config.initial_members|int }}명</div>
+        </div>
+        {% if results %}
+        <div class="kpi-card">
+            <div class="label">최근 월 순이익</div>
+            <div class="value {{ 'positive' if results[-1].profit > 0 else 'negative' }}">
+                {{ '%+.0f'|format(results[-1].profit) }}만
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">누적 손익</div>
+            <div class="value {{ 'positive' if results[-1].cumulative > 0 else 'negative' }}">
+                {{ '%+.0f'|format(results[-1].cumulative) }}만
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Simulation Chart -->
+    <div class="section">
+        <h2>📈 12개월 시뮬레이션 (월 신규 5명 / 이탈률 12%)</h2>
+        <div class="chart-container">
+            <canvas id="simChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Simulation Table -->
+    <div class="section">
+        <h2>📊 시뮬레이션 상세</h2>
+        <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th></tr>
+            </thead>
+            <tbody>
+                {% for r in simulation %}
+                <tr>
+                    <td>{{ r.month }}월</td>
+                    <td>{{ r.total_members }}명</td>
+                    <td>+{{ r.new }}</td>
+                    <td>-{{ r.churned }}</td>
+                    <td>{{ r.revenue }}만</td>
+                    <td>{{ r.cost }}만</td>
+                    <td class="{{ 'profit-pos' if r.profit > 0 else 'profit-neg' }}">{{ '%+.0f'|format(r.profit) }}만</td>
+                    <td class="{{ 'profit-pos' if r.cumulative > 0 else 'profit-neg' }}">{{ '%+.0f'|format(r.cumulative) }}만</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- Actual Data -->
+    <div class="section">
+        <h2>📝 실적 입력</h2>
+        <div class="input-row">
+            <div class="config-item"><label>신규 회원</label><input type="number" id="inp_new" value="5"></div>
+            <div class="config-item"><label>이탈 회원</label><input type="number" id="inp_churn" value="3"></div>
+            <div class="config-item"><label>추가 매출 (만)</label><input type="number" id="inp_extra_rev" value="0"></div>
+            <div class="config-item"><label>추가 비용 (만)</label><input type="number" id="inp_extra_cost" value="0"></div>
+            <div class="config-item"><label>메모</label><input type="text" id="inp_note" placeholder="워크숍 등"></div>
+            <button class="btn btn-primary" onclick="addMonth()">추가</button>
+        </div>
+
+        {% if results %}
+        <table style="margin-top:16px;">
+            <thead>
+                <tr><th>월</th><th>회원</th><th>신규</th><th>이탈</th><th>매출</th><th>비용</th><th>순이익</th><th>누적</th><th>메모</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td>{{ r.month }}월</td>
+                    <td>{{ r.total_members }}명</td>
+                    <td>+{{ r.new_members }}</td>
+                    <td>-{{ r.churned_members }}</td>
+                    <td>{{ r.revenue }}만</td>
+                    <td>{{ r.cost }}만</td>
+                    <td class="{{ 'profit-pos' if r.profit > 0 else 'profit-neg' }}">{{ '%+.0f'|format(r.profit) }}만</td>
+                    <td class="{{ 'profit-pos' if r.cumulative > 0 else 'profit-neg' }}">{{ '%+.0f'|format(r.cumulative) }}만</td>
+                    <td>{{ r.note }}</td>
+                    <td><button class="btn btn-danger" onclick="deleteMonth({{ loop.index0 }})">×</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- Config -->
+    <div class="section">
+        <h2>⚙️ 설정</h2>
+        <div class="config-grid">
+            <div class="config-item"><label>월세 (만)</label><input type="number" id="cfg_rent" value="{{ config.rent|int }}"></div>
+            <div class="config-item"><label>강사비 (만)</label><input type="number" id="cfg_instructor_cost" value="{{ config.instructor_cost|int }}"></div>
+            <div class="config-item"><label>관리비 (만)</label><input type="number" id="cfg_utilities" value="{{ config.utilities|int }}"></div>
+            <div class="config-item"><label>소모품 (만)</label><input type="number" id="cfg_supplies" value="{{ config.supplies|int }}"></div>
+            <div class="config-item"><label>마케팅 (만)</label><input type="number" id="cfg_marketing" value="{{ config.marketing|int }}"></div>
+            <div class="config-item"><label>3개월 주3회 (만)</label><input type="number" id="cfg_price_3m_3x" value="{{ config.price_3m_3x|int }}"></div>
+            <div class="config-item"><label>초기 회원 수</label><input type="number" id="cfg_initial_members" value="{{ config.initial_members|int }}"></div>
+            <div class="config-item"><label>권리금 (만)</label><input type="number" id="cfg_key_money" value="{{ config.key_money|int }}"></div>
+            <div class="config-item"><label>보증금 (만)</label><input type="number" id="cfg_deposit" value="{{ config.deposit|int }}"></div>
+            <div class="config-item"><label>인테리어 (만)</label><input type="number" id="cfg_interior" value="{{ config.interior|int }}"></div>
+        </div>
+        <div style="margin-top:16px; display:flex; gap:8px;">
+            <button class="btn btn-primary" onclick="saveConfig()">설정 저장</button>
+            <button class="btn btn-secondary" onclick="resetAll()">전체 초기화</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Chart
+const simData = {{ simulation|tojson }};
+new Chart(document.getElementById('simChart'), {
+    type: 'bar',
+    data: {
+        labels: simData.map(d => d.month + '월'),
+        datasets: [
+            {
+                label: '월 순이익 (만)',
+                data: simData.map(d => d.profit),
+                backgroundColor: simData.map(d => d.profit >= 0 ? '#86efac' : '#fca5a5'),
+                borderRadius: 4,
+            },
+            {
+                label: '누적 손익 (만)',
+                data: simData.map(d => d.cumulative),
+                type: 'line',
+                borderColor: '#2563eb',
+                borderWidth: 2,
+                pointRadius: 4,
+                fill: false,
+                yAxisID: 'y1',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { position: 'left', title: { display: true, text: '월 순이익 (만)' } },
+            y1: { position: 'right', title: { display: true, text: '누적 (만)' }, grid: { drawOnChartArea: false } }
+        }
+    }
+});
+
+function addMonth() {
+    fetch('/api/month', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            new_members: document.getElementById('inp_new').value,
+            churned_members: document.getElementById('inp_churn').value,
+            extra_revenue: document.getElementById('inp_extra_rev').value,
+            extra_cost: document.getElementById('inp_extra_cost').value,
+            note: document.getElementById('inp_note').value,
+        })
+    }).then(() => location.reload());
+}
+
+function deleteMonth(idx) {
+    fetch('/api/month/' + idx, {method: 'DELETE'}).then(() => location.reload());
+}
+
+function saveConfig() {
+    const fields = ['rent','instructor_cost','utilities','supplies','marketing','price_3m_3x','initial_members','key_money','deposit','interior'];
+    const data = {};
+    fields.forEach(f => { data[f] = document.getElementById('cfg_' + f).value; });
+    fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    }).then(() => location.reload());
+}
+
+function resetAll() {
+    if (confirm('모든 데이터를 초기화할까요?')) {
+        fetch('/api/reset', {method: 'POST'}).then(() => location.reload());
+    }
+}
+</script>
+</body>
+</html>
