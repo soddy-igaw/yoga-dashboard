@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시월요가 · 경영 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f7f8fa; --card: #fff; --text: #1a1a1a; --sub: #868e96; --blue: #3182f6; --red: #f04452; --green: #20c997; --border: #e9ecef; --sidebar-bg: #1b1d1f; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: #fff; padding: 28px 20px; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; }
+        .main { margin-left: 280px; flex: 1; padding: 32px 40px; }
+        .sidebar h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .sidebar .s-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 24px; }
+        .s-section { margin-bottom: 20px; }
+        .s-section-title { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+        .s-group { margin-bottom: 12px; }
+        .s-group .sg-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .s-group .sg-label { font-size: 12px; color: rgba(255,255,255,0.6); }
+        .s-group .sg-val { font-size: 12px; font-weight: 700; color: #fff; }
+        .sidebar input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; }
+        .sidebar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); border: 2px solid #fff; cursor: pointer; }
+        .s-result { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 12px; }
+        .s-result .sr-label { color: rgba(255,255,255,0.5); }
+        .s-result .sr-val { font-weight: 700; }
+        .page-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .page-sub { font-size: 13px; color: var(--sub); margin-bottom: 24px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+        .kpi { background: var(--card); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
+        .kpi .k-label { font-size: 11px; color: var(--sub); font-weight: 500; }
+        .kpi .k-val { font-size: 24px; font-weight: 800; margin-top: 4px; letter-spacing: -1px; }
+        .kpi .k-sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
+        .card { background: var(--card); border-radius: 14px; padding: 22px; border: 1px solid var(--border); margin-bottom: 16px; }
+        .card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .card-sub { font-size: 12px; color: var(--sub); margin-bottom: 14px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+        .chart-box { height: 200px; }
+        /* 잔여회원 테이블 */
+        .member-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .member-tbl th { text-align: left; font-weight: 500; color: var(--sub); padding: 8px 6px; border-bottom: 2px solid var(--border); }
+        .member-tbl td { padding: 8px 6px; border-bottom: 1px solid #f1f3f5; }
+        .member-tbl .debt { color: var(--red); font-weight: 600; }
+        .member-tbl .income { color: var(--blue); font-weight: 600; }
+        /* 회원가 입력 */
+        .price-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .price-input { background: #f8f9fa; border-radius: 10px; padding: 12px; text-align: center; }
+        .price-input label { font-size: 11px; color: var(--sub); display: block; margin-bottom: 4px; }
+        .price-input input { width: 100%; border: none; background: transparent; text-align: center; font-size: 16px; font-weight: 700; color: var(--text); font-family: inherit; outline: none; }
+        .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+        .flow-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+        .flow-row:last-child { border-bottom: none; }
+        .flow-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .flow-info { flex: 1; }
+        .flow-info .fi-name { font-size: 13px; font-weight: 600; }
+        .flow-info .fi-desc { font-size: 11px; color: var(--sub); }
+        .flow-val { font-size: 14px; font-weight: 700; }
+        @media (max-width: 1024px) {
+            .sidebar { position: static; width: 100%; }
+            .main { margin-left: 0; padding: 20px; }
+            .layout { flex-direction: column; }
+            .kpi-row { grid-template-columns: repeat(2, 1fr); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .price-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <h2>시월요가</h2>
+    <div class="s-sub">경영 시뮬레이션</div>
+    <div class="s-section">
+        <div class="s-section-title">초기 투자</div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">총 투자금</span><span class="sg-val" id="v_invest"></span></div><input type="range" id="s_invest" min="500" max="2500" step="50" value="1000"></div>
+    </div>
+    <div class="s-section">
+        <div class="s-section-title">강사비</div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">시급</span><span class="sg-val" id="v_wage"></span></div><input type="range" id="s_wage" min="2.5" max="5" step="0.1" value="3.5"></div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">일 근무시간</span><span class="sg-val" id="v_hours"></span></div><input type="range" id="s_hours" min="2" max="6" step="0.5" value="3"></div>
+        <div class="s-result"><span class="sr-label">월 강사비</span><span class="sr-val" id="instrResult"></span></div>
+    </div>
+    <div class="s-section">
+        <div class="s-section-title">고정비</div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">월세</span><span class="sg-val" id="v_rent"></span></div><input type="range" id="s_rent" min="150" max="300" step="5" value="200"></div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">관리비</span><span class="sg-val" id="v_mgmt"></span></div><input type="range" id="s_mgmt" min="10" max="40" step="5" value="20"></div>
+        <div class="s-result"><span class="sr-label">월 총 고정비</span><span class="sr-val" id="fixedResult"></span></div>
+    </div>
+    <div class="s-section">
+        <div class="s-section-title">회원</div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">월 신규</span><span class="sg-val" id="v_new"></span></div><input type="range" id="s_new" min="0" max="15" step="1" value="5"></div>
+        <div class="s-group"><div class="sg-top"><span class="sg-label">월 이탈률</span><span class="sg-val" id="v_churn"></span></div><input type="range" id="s_churn" min="5" max="30" step="1" value="12"></div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="page-title">경영 인사이트</div>
+    <div class="page-sub">잔여회원 = 내 부채 / 신규회원 = 내 수익</div>
+
+    <div class="kpi-row">
+        <div class="kpi"><div class="k-label">BEP 회원</div><div class="k-val" id="kBep"></div><div class="k-sub">월 흑자 기준</div></div>
+        <div class="kpi"><div class="k-label">월 순이익</div><div class="k-val" id="kProfit"></div><div class="k-sub" id="kProfitSub"></div></div>
+        <div class="kpi"><div class="k-label">잔여회원 부채</div><div class="k-val" id="kDebt"></div><div class="k-sub">남은 서비스 의무</div></div>
+        <div class="kpi"><div class="k-label">투자 회수</div><div class="k-val" id="kRecover"></div><div class="k-sub" id="kRecoverSub"></div></div>
+    </div>
+
+    <!-- 잔여회원 (부채) 섹션 -->
+    <div class="card">
+        <div class="card-title">📋 잔여회원 현황 <span class="tag" style="background:#ffe3e3;color:var(--red);margin-left:8px;">= 나의 부채</span></div>
+        <div class="card-sub">기존 회원의 남은 기간 = 이미 받은 돈으로 제공해야 할 서비스</div>
+        <div class="grid-2">
+            <div>
+                <table class="member-tbl" id="debtTable"></table>
+            </div>
+            <div>
+                <div class="chart-box"><canvas id="debtChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 회원가 설정 -->
+    <div class="card">
+        <div class="card-title">💳 회원권 가격표</div>
+        <div class="card-sub">개월별 등록가 (만원) - 직접 수정 가능</div>
+        <div class="price-grid">
+            <div class="price-input"><label>1개월</label><input type="number" id="p_1" value="20"></div>
+            <div class="price-input"><label>3개월</label><input type="number" id="p_3" value="52"></div>
+            <div class="price-input"><label>6개월</label><input type="number" id="p_6" value="90"></div>
+            <div class="price-input"><label>12개월</label><input type="number" id="p_12" value="156"></div>
+        </div>
+        <div class="card-sub">월 환산 단가</div>
+        <div class="price-grid" id="pricePerMonth"></div>
+    </div>
+
+    <!-- 등록 회원가별 수익 분석 -->
+    <div class="card">
+        <div class="card-title">📊 회원권별 수익 기여도</div>
+        <div class="card-sub">어떤 권종이 매출에 얼마나 기여하는지</div>
+        <div class="grid-2">
+            <div id="revenueByType"></div>
+            <div class="chart-box"><canvas id="revChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- 월 수익구조 -->
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-title">월 수익 구조</div>
+            <div id="flowList"></div>
+            <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid var(--text);margin-top:10px;font-weight:700;">
+                <span>순이익</span><span id="flowProfit"></span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">비용 비율</div>
+            <div class="chart-box"><canvas id="pieChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- 12개월 차트 -->
+    <div class="card">
+        <div class="card-title">12개월 누적 손익</div>
+        <div class="card-sub">0선 돌파 = 투자금 회수 시점</div>
+        <div style="height:220px;"><canvas id="cumulChart"></canvas></div>
+    </div>
+</main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let cumulChart, pieChart, debtChart, revChart;
+
+// 잔여회원 데이터 (입력 가능하게)
+const LEGACY_MEMBERS = [
+    { type: '1개월', count: 3, remainMonths: 0.5 },
+    { type: '3개월', count: 8, remainMonths: 1.5 },
+    { type: '6개월', count: 6, remainMonths: 3.2 },
+    { type: '12개월', count: 3, remainMonths: 7.0 },
+];
+
+const SLIDERS = ['invest','wage','hours','rent','mgmt','new','churn'];
+SLIDERS.forEach(s => $('s_'+s).addEventListener('input', render));
+['p_1','p_3','p_6','p_12'].forEach(id => $(id).addEventListener('input', render));
+
+function render() {
+    const invest = +$('s_invest').value;
+    const wage = +$('s_wage').value;
+    const hours = +$('s_hours').value;
+    const rent = +$('s_rent').value;
+    const mgmt = +$('s_mgmt').value;
+    const monthlyNew = +$('s_new').value;
+    const churnRate = +$('s_churn').value / 100;
+
+    const p1 = +$('p_1').value, p3 = +$('p_3').value, p6 = +$('p_6').value, p12 = +$('p_12').value;
+    const pm1 = p1, pm3 = +(p3/3).toFixed(1), pm6 = +(p6/6).toFixed(1), pm12 = +(p12/12).toFixed(1);
+
+    const instrCost = Math.round(wage * hours * 26);
+    const etc = 15;
+    const fixed = rent + mgmt + instrCost + etc;
+
+    const totalMembers = LEGACY_MEMBERS.reduce((a,m) => a + m.count, 0);
+    // 가중평균 월단가
+    const weights = [
+        { count: LEGACY_MEMBERS[0].count, pm: pm1 },
+        { count: LEGACY_MEMBERS[1].count, pm: pm3 },
+        { count: LEGACY_MEMBERS[2].count, pm: pm6 },
+        { count: LEGACY_MEMBERS[3].count, pm: pm12 },
+    ];
+    const avgPrice = totalMembers > 0 ? weights.reduce((a,w) => a + w.count * w.pm, 0) / totalMembers : 17.3;
+    const revenue = Math.round(totalMembers * avgPrice);
+    const profit = revenue - fixed;
+    const bep = Math.ceil(fixed / avgPrice);
+
+    // 잔여회원 부채 (남은 기간 × 운영비 비례)
+    const costPerMemberMonth = fixed / totalMembers || 0;
+    const totalDebt = Math.round(LEGACY_MEMBERS.reduce((a,m) => a + m.count * m.remainMonths * costPerMemberMonth, 0));
+
+    // 사이드바
+    $('v_invest').textContent = invest.toLocaleString() + '만';
+    $('v_wage').textContent = wage.toFixed(1) + '만';
+    $('v_hours').textContent = hours + 'h';
+    $('v_rent').textContent = rent + '만';
+    $('v_mgmt').textContent = mgmt + '만';
+    $('v_new').textContent = monthlyNew + '명';
+    $('v_churn').textContent = (churnRate*100).toFixed(0) + '%';
+    $('instrResult').textContent = instrCost + '만원';
+    $('fixedResult').textContent = fixed + '만원';
+
+    // KPI
+    $('kBep').textContent = bep + '명';
+    $('kBep').style.color = 'var(--blue)';
+    $('kProfit').textContent = (profit>=0?'+':'') + profit + '만';
+    $('kProfit').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+    $('kProfitSub').textContent = profit >= 0 ? '흑자' : '적자';
+    $('kDebt').textContent = totalDebt + '만';
+    $('kDebt').style.color = 'var(--red)';
+    
+    // 시뮬
+    let m = totalMembers, cumul = -invest - totalDebt, recMonth = null;
+    const cData = [];
+    for (let i = 1; i <= 12; i++) {
+        m = Math.max(0, m - Math.round(m*churnRate) + monthlyNew);
+        cumul += Math.round(m * avgPrice) - fixed;
+        if (cumul >= 0 && !recMonth) recMonth = i;
+        cData.push(Math.round(cumul));
+    }
+    $('kRecover').textContent = recMonth ? recMonth + '개월' : '12+';
+    $('kRecover').style.color = recMonth ? 'var(--green)' : 'var(--red)';
+    $('kRecoverSub').textContent = recMonth ? '투자+부채 회수' : '12개월 내 미회수';
+
+    // 월환산 단가
+    $('pricePerMonth').innerHTML = [
+        {label:'1개월',val:pm1},{label:'3개월',val:pm3},{label:'6개월',val:pm6},{label:'12개월',val:pm12}
+    ].map(p => `<div class="price-input" style="background:#e8f3ff;"><label>${p.label}</label><div style="font-size:16px;font-weight:700;color:var(--blue);">${p.val}만/월</div></div>`).join('');
+
+    // 잔여회원 테이블
+    $('debtTable').innerHTML = `<thead><tr><th>권종</th><th>인원</th><th>잔여</th><th>부채</th></tr></thead><tbody>` +
+        LEGACY_MEMBERS.map(m => {
+            const debt = Math.round(m.count * m.remainMonths * costPerMemberMonth);
+            return `<tr><td>${m.type}권</td><td>${m.count}명</td><td>${m.remainMonths}개월</td><td class="debt">-${debt}만</td></tr>`;
+        }).join('') +
+        `<tr style="border-top:2px solid var(--text);font-weight:700;"><td>합계</td><td>${totalMembers}명</td><td>-</td><td class="debt">-${totalDebt}만</td></tr></tbody>`;
+
+    // 회원권별 매출 기여
+    const revByType = [
+        { name: '1개월권', count: LEGACY_MEMBERS[0].count, monthly: pm1, color: '#3182f6' },
+        { name: '3개월권', count: LEGACY_MEMBERS[1].count, monthly: pm3, color: '#7048e8' },
+        { name: '6개월권', count: LEGACY_MEMBERS[2].count, monthly: pm6, color: '#20c997' },
+        { name: '12개월권', count: LEGACY_MEMBERS[3].count, monthly: pm12, color: '#f59f00' },
+    ];
+    const totalRev = revByType.reduce((a,r) => a + r.count * r.monthly, 0);
+    $('revenueByType').innerHTML = revByType.map(r => {
+        const rev = Math.round(r.count * r.monthly);
+        const pct = Math.round(rev / totalRev * 100);
+        return `<div class="flow-row"><div class="flow-icon" style="background:${r.color}20;color:${r.color};">●</div><div class="flow-info"><div class="fi-name">${r.name} (${r.count}명)</div><div class="fi-desc">월 ${r.monthly}만 × ${r.count}명</div></div><div class="flow-val" style="color:${r.color};">${rev}만 <span style="font-size:11px;color:var(--sub);">(${pct}%)</span></div></div>`;
+    }).join('');
+
+    // 수익구조
+    $('flowList').innerHTML = [
+        { icon:'💰', bg:'#e8f3ff', name:'매출', desc:`${totalMembers}명 평균 ${avgPrice.toFixed(1)}만`, val:revenue, pos:true },
+        { icon:'🏠', bg:'#fff0f1', name:'월세', desc:'', val:rent, pos:false },
+        { icon:'👩‍🏫', bg:'#f3f0ff', name:'강사비', desc:`${wage}만×${hours}h×26일`, val:instrCost, pos:false },
+        { icon:'📦', bg:'#fff8e1', name:'관리+기타', desc:'관리비/공과금/소모품', val:mgmt+etc, pos:false },
+    ].map(f => `<div class="flow-row"><div class="flow-icon" style="background:${f.bg}">${f.icon}</div><div class="flow-info"><div class="fi-name">${f.name}</div><div class="fi-desc">${f.desc}</div></div><div class="flow-val" style="color:${f.pos?'var(--blue)':'var(--red)'}">${f.pos?'+':'-'}${f.val}만</div></div>`).join('');
+    $('flowProfit').textContent = (profit>=0?'+':'') + profit + '만원';
+    $('flowProfit').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // 차트들
+    const labels12 = Array.from({length:12},(_,i)=>(i+1)+'월');
+    const co = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} };
+
+    if(cumulChart)cumulChart.destroy();
+    cumulChart = new Chart($('cumulChart'),{type:'line',data:{labels:labels12,datasets:[
+        {data:cData,fill:true,tension:.35,borderColor:'#3182f6',borderWidth:2.5,backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,220);g.addColorStop(0,'rgba(49,130,246,0.12)');g.addColorStop(1,'rgba(49,130,246,0)');return g;},pointBackgroundColor:cData.map(v=>v>=0?'#20c997':'#f04452'),pointRadius:4},
+        {data:Array(12).fill(0),borderColor:'#dee2e6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false}
+    ]},options:{...co,scales:{x:{grid:{display:false}},y:{grid:{color:'#f1f3f5'},ticks:{callback:v=>v+'만'}}}}});
+
+    if(pieChart)pieChart.destroy();
+    pieChart = new Chart($('pieChart'),{type:'doughnut',data:{labels:['월세','강사비','관리비','기타'],datasets:[{data:[rent,instrCost,mgmt,etc],backgroundColor:['#f04452','#7048e8','#3182f6','#868e96'],borderWidth:0}]},options:{...co,plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},boxWidth:10}}},cutout:'60%'}});
+
+    if(debtChart)debtChart.destroy();
+    debtChart = new Chart($('debtChart'),{type:'bar',data:{labels:LEGACY_MEMBERS.map(m=>m.type),datasets:[{data:LEGACY_MEMBERS.map(m=>Math.round(m.count*m.remainMonths*costPerMemberMonth)),backgroundColor:['#3182f6','#7048e8','#20c997','#f59f00'],borderRadius:6}]},options:{...co,scales:{x:{grid:{display:false}},y:{grid:{color:'#f1f3f5'},ticks:{callback:v=>v+'만'}}}}});
+
+    if(revChart)revChart.destroy();
+    revChart = new Chart($('revChart'),{type:'doughnut',data:{labels:revByType.map(r=>r.name),datasets:[{data:revByType.map(r=>Math.round(r.count*r.monthly)),backgroundColor:revByType.map(r=>r.color),borderWidth:0}]},options:{...co,plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:8}}},cutout:'55%'}});
+}
+
+render();
+</script>
+</body>
+</html>
